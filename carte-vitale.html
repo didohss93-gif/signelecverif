@@ -406,65 +406,82 @@
   });
 
   document.getElementById('btnDownload').addEventListener('click', function () {
-    var card = document.getElementById('cvCard');
-    function fallback() {
-      // canvas export from template
-      var data = refresh();
-      var canvas = document.createElement('canvas');
-      canvas.width = 850; canvas.height = 607;
+    var data = refresh();
+    var def = isDefault(data);
+
+    function downloadCanvas(canvas) {
+      var a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = 'carte-vitale-fictive.png';
+      a.click();
+      toast('PNG téléchargé');
+    }
+
+    function drawCustom(canvas, baseSrc) {
       var ctx = canvas.getContext('2d');
-      var img = new Image();
-      img.onload = function () {
-        ctx.drawImage(img, 0, 0, 850, 607);
+      var cw = canvas.width, ch = canvas.height;
+      var base = new Image();
+      base.onload = function () {
+        ctx.drawImage(base, 0, 0, cw, ch);
         ctx.fillStyle = '#0a140e';
-        ctx.font = '500 22px Arial, Helvetica, sans-serif';
-        ctx.fillText('émise le ' + data.emise, 850 * 0.36, 607 * 0.435);
-        ctx.font = '600 28px Arial, Helvetica, sans-serif';
-        ctx.fillText(data.prenom, 850 * 0.36, 607 * 0.525);
-        ctx.font = '700 28px Arial, Helvetica, sans-serif';
-        ctx.fillText(data.nom, 850 * 0.36, 607 * 0.58);
-        ctx.font = '600 30px Arial, Helvetica, sans-serif';
-        ctx.fillText(data.nir, 850 * 0.30, 607 * 0.86);
+        ctx.font = '500 ' + Math.round(ch * 0.036) + 'px Arial, Helvetica, sans-serif';
+        ctx.fillText('émise le ' + data.emise, cw * 0.37, ch * 0.435);
+        ctx.font = '600 ' + Math.round(ch * 0.045) + 'px Arial, Helvetica, sans-serif';
+        ctx.fillText(data.prenom, cw * 0.37, ch * 0.515);
+        ctx.font = '700 ' + Math.round(ch * 0.045) + 'px Arial, Helvetica, sans-serif';
+        ctx.fillText(data.nom, cw * 0.37, ch * 0.565);
+        ctx.font = '600 ' + Math.round(ch * 0.048) + 'px Arial, Helvetica, sans-serif';
+        ctx.fillText(data.nir, cw * 0.31, ch * 0.865);
         function finish() {
-          // serial
           ctx.save();
-          ctx.translate(850 * 0.97, 607 * 0.5);
+          ctx.translate(cw * 0.965, ch * 0.5);
           ctx.rotate(-Math.PI / 2);
-          ctx.font = '500 11px Arial, Helvetica, sans-serif';
+          ctx.font = '500 ' + Math.round(ch * 0.018) + 'px Arial, Helvetica, sans-serif';
           ctx.textAlign = 'center';
           ctx.fillText(data.serie, 0, 0);
           ctx.restore();
-          var a = document.createElement('a');
-          a.href = canvas.toDataURL('image/png');
-          a.download = 'carte-vitale-fictive.png';
-          a.click();
-          toast('PNG téléchargé');
+          downloadCanvas(canvas);
         }
         if (data.photo) {
           var p = new Image();
           p.onload = function () {
-            var x = 850 * 0.742, y = 607 * 0.215, w = 850 * 0.146, h = 607 * 0.43;
-            ctx.drawImage(p, x, y, w, h);
+            ctx.drawImage(p, cw * 0.748, ch * 0.215, cw * 0.137, ch * 0.355);
             finish();
           };
           p.onerror = finish;
           p.src = data.photo;
         } else finish();
       };
-      img.src = 'assets/carte-template.jpg';
+      base.src = baseSrc;
     }
 
+    if (def) {
+      var ref = new Image();
+      ref.onload = function () {
+        var canvas = document.createElement('canvas');
+        canvas.width = ref.naturalWidth;
+        canvas.height = ref.naturalHeight;
+        canvas.getContext('2d').drawImage(ref, 0, 0);
+        downloadCanvas(canvas);
+      };
+      ref.src = 'assets/carte-reference.jpg';
+      return;
+    }
+
+    var card = document.getElementById('cvCard');
     if (window.html2canvas) {
       window.html2canvas(card, { backgroundColor: null, scale: 2, useCORS: true })
-        .then(function (canvas) {
-          var a = document.createElement('a');
-          a.href = canvas.toDataURL('image/png');
-          a.download = 'carte-vitale-fictive.png';
-          a.click();
-          toast('PNG téléchargé');
-        })
-        .catch(fallback);
-    } else fallback();
+        .then(downloadCanvas)
+        .catch(function () {
+          var c = document.createElement('canvas');
+          c.width = 850; c.height = 607;
+          drawCustom(c, 'assets/carte-template.jpg');
+        });
+    } else {
+      var c = document.createElement('canvas');
+      c.width = 850; c.height = 607;
+      drawCustom(c, 'assets/carte-template.jpg');
+    }
   });
 
   (function () {
