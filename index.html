@@ -3,103 +3,396 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vérification de signature électronique</title>
+<title>Maquette Carte Vitale (démo)</title>
 <style>
-  :root{ --navy:#1E3A5F; --navy2:#183858; --accent:#00B4D8; --ok:#2BA66F; --ink:#22303f; --muted:#5C7088; --line:#e4eaf0; --bg:#f4f7fb; }
-  *{ box-sizing:border-box; }
-  body{ margin:0; background:var(--bg); color:var(--ink);
-        font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-        -webkit-font-smoothing:antialiased; padding:16px; }
-  .card{ max-width:640px; margin:0 auto; background:#fff; border:1px solid var(--line);
-         border-radius:16px; overflow:hidden; box-shadow:0 6px 24px rgba(30,58,95,.08); }
-  .head{ background:linear-gradient(135deg,var(--navy),var(--navy2)); color:#fff; padding:22px 20px; }
-  .head h1{ margin:0; font-size:19px; letter-spacing:.2px; }
-  .head p{ margin:6px 0 0; font-size:12.5px; opacity:.85; }
-  .valid{ display:inline-flex; align-items:center; gap:7px; margin-top:14px;
-           background:rgba(43,166,111,.18); color:#c9f5df; border:1px solid rgba(43,166,111,.5);
-           padding:6px 12px; border-radius:999px; font-size:12.5px; font-weight:600; }
-  .dot{ width:9px; height:9px; border-radius:50%; background:var(--ok); box-shadow:0 0 0 3px rgba(43,166,111,.25); }
-  .body{ padding:18px 20px 22px; }
-  .kv{ display:grid; grid-template-columns:130px 1fr; gap:4px 12px; font-size:13.5px; margin-bottom:4px; }
-  .kv .k{ color:var(--muted); }
-  .kv .v{ font-weight:600; word-break:break-word; }
-  h2{ font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:var(--navy);
-      margin:22px 0 10px; padding-bottom:7px; border-bottom:2px solid var(--line); }
-  .sig{ border:1px solid var(--line); border-radius:12px; padding:13px 14px; margin-bottom:10px; }
-  .sig .top{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
-  .sig .name{ font-weight:700; font-size:15px; }
-  .sig .role{ color:var(--muted); font-size:12.5px; margin-top:1px; }
-  .sig .when{ font-size:12.5px; color:var(--ink); margin-top:6px; }
-  .sig .when b{ color:var(--navy); }
-  .chip{ background:rgba(43,166,111,.12); color:#1c7d52; border:1px solid rgba(43,166,111,.35);
-         font-size:11.5px; font-weight:700; padding:4px 9px; border-radius:999px; white-space:nowrap; }
-  .mono{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:11px;
-         color:var(--muted); word-break:break-all; }
-  .foot{ margin-top:18px; padding-top:14px; border-top:1px solid var(--line);
-         font-size:11.5px; color:var(--muted); line-height:1.55; }
-  .brand{ font-weight:700; color:var(--navy); }
-  .err{ text-align:center; color:var(--muted); padding:26px 10px; font-size:14px; }
-  @media(max-width:420px){ .kv{ grid-template-columns:1fr; gap:1px; } .kv .k{ margin-top:8px; } }
+  :root {
+    --vitale-green: #2f9a45;
+    --vitale-green-deep: #1f7a32;
+    --vitale-yellow: #f0d000;
+    --vitale-yellow-deep: #e6c200;
+    --chip-gold: #d4af37;
+    --chip-gold-light: #f0d878;
+    --chip-gold-dark: #a8892a;
+    --ink: #1a1a1a;
+    --page-bg: #e8ecef;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 24px 16px 40px;
+    background:
+      radial-gradient(ellipse at 30% 20%, #f5f7f8 0%, transparent 50%),
+      radial-gradient(ellipse at 70% 80%, #dce3e8 0%, transparent 45%),
+      var(--page-bg);
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: var(--ink);
+  }
+
+  .demo-note {
+    position: fixed;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    padding: 8px 14px;
+    border-radius: 999px;
+    opacity: 0.85;
+    z-index: 10;
+    white-space: nowrap;
+  }
+
+  /* Ratio carte bancaire ≈ 85.60 × 53.98 mm */
+  .vitale {
+    --w: min(92vw, 560px);
+    width: var(--w);
+    aspect-ratio: 85.6 / 53.98;
+    position: relative;
+    border-radius: calc(var(--w) * 0.035);
+    overflow: hidden;
+    box-shadow:
+      0 2px 4px rgba(0, 0, 0, 0.12),
+      0 18px 40px rgba(20, 60, 30, 0.28),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+    isolation: isolate;
+    animation: card-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes card-in {
+    from { opacity: 0; transform: translateY(18px) scale(0.97); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* Fond vert + motif de tirets */
+  .vitale__bg {
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(
+        0deg,
+        transparent 0 5px,
+        rgba(18, 90, 35, 0.18) 5px 6px
+      ),
+      linear-gradient(145deg, #3aaa52 0%, var(--vitale-green) 45%, var(--vitale-green-deep) 100%);
+  }
+
+  /* Triangle jaune gauche */
+  .vitale__yellow {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 38%;
+    background: linear-gradient(160deg, var(--vitale-yellow) 0%, var(--vitale-yellow-deep) 100%);
+    clip-path: polygon(0 0, 72% 0, 0 100%);
+    z-index: 1;
+  }
+
+  .vitale__yellow::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent 0 7px,
+      rgba(180, 150, 0, 0.12) 7px 8px
+    );
+    clip-path: inherit;
+  }
+
+  /* Contenu */
+  .vitale__content {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    padding: 6.5% 5% 5.5% 6%;
+  }
+
+  .vitale__brand {
+    position: absolute;
+    left: 28%;
+    top: 9%;
+    line-height: 1;
+  }
+
+  .vitale__brand-name {
+    display: block;
+    font-size: clamp(28px, 8.2vw, 46px);
+    font-weight: 800;
+    color: var(--vitale-yellow);
+    letter-spacing: -0.02em;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
+    animation: brand-glow 2.4s ease-in-out infinite alternate;
+  }
+
+  @keyframes brand-glow {
+    from { filter: brightness(1); }
+    to { filter: brightness(1.08); }
+  }
+
+  .vitale__brand-sub {
+    display: block;
+    margin-top: 0.35em;
+    font-size: clamp(10px, 2.4vw, 13.5px);
+    font-weight: 500;
+    color: #fff;
+    letter-spacing: 0.01em;
+  }
+
+  /* Puce */
+  .vitale__chip {
+    position: absolute;
+    left: 7.5%;
+    top: 28%;
+    width: 11.5%;
+    aspect-ratio: 1.15 / 1;
+    border-radius: 18%;
+    background:
+      linear-gradient(135deg, var(--chip-gold-light) 0%, var(--chip-gold) 40%, var(--chip-gold-dark) 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.45),
+      0 2px 4px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+  }
+
+  .vitale__chip-grid {
+    position: absolute;
+    inset: 12%;
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    gap: 6%;
+  }
+
+  .vitale__chip-grid span {
+    background: rgba(120, 90, 20, 0.35);
+    border-radius: 15%;
+  }
+
+  .vitale__chip-grid span:nth-child(2),
+  .vitale__chip-grid span:nth-child(5),
+  .vitale__chip-grid span:nth-child(8) {
+    background: rgba(90, 70, 10, 0.45);
+  }
+
+  /* Braille */
+  .vitale__braille {
+    position: absolute;
+    left: 5.5%;
+    top: 54%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: calc(var(--w) * 0.012) calc(var(--w) * 0.014);
+  }
+
+  .vitale__braille i {
+    width: calc(var(--w) * 0.016);
+    height: calc(var(--w) * 0.016);
+    border-radius: 50%;
+    background: rgba(40, 40, 40, 0.55);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.25);
+    display: block;
+  }
+
+  /* Flèche coin bas gauche */
+  .vitale__arrow {
+    position: absolute;
+    left: 4%;
+    bottom: 6%;
+    color: #fff;
+    font-size: clamp(14px, 3.2vw, 20px);
+    font-weight: 300;
+    line-height: 1;
+    opacity: 0.95;
+  }
+
+  /* Infos titulaire */
+  .vitale__info {
+    position: absolute;
+    left: 28%;
+    top: 42%;
+    right: 28%;
+  }
+
+  .vitale__issued {
+    font-size: clamp(10px, 2.2vw, 13px);
+    font-weight: 500;
+    margin-bottom: 10%;
+  }
+
+  .vitale__name {
+    font-size: clamp(13px, 3vw, 18px);
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    margin-bottom: 14%;
+  }
+
+  .vitale__nir {
+    font-size: clamp(12px, 2.7vw, 16px);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Photo */
+  .vitale__photo {
+    position: absolute;
+    right: 7%;
+    top: 22%;
+    width: 18.5%;
+    aspect-ratio: 1 / 1.15;
+    border-radius: 4%;
+    overflow: hidden;
+    background: #c8d4c0;
+    box-shadow:
+      0 0 0 3px rgba(80, 180, 90, 0.35),
+      0 0 18px 6px rgba(60, 160, 80, 0.45);
+    animation: photo-pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes photo-pulse {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(80, 180, 90, 0.35), 0 0 18px 6px rgba(60, 160, 80, 0.4); }
+    50% { box-shadow: 0 0 0 3px rgba(80, 180, 90, 0.5), 0 0 22px 8px rgba(60, 160, 80, 0.55); }
+  }
+
+  .vitale__photo-placeholder {
+    width: 100%;
+    height: 100%;
+    background:
+      radial-gradient(circle at 50% 38%, #e8ebe6 0 22%, transparent 23%),
+      radial-gradient(ellipse at 50% 88%, #d0d6cc 0 38%, transparent 39%),
+      linear-gradient(180deg, #b8c4b0 0%, #9eae96 100%);
+  }
+
+  /* Numéro vertical */
+  .vitale__serial {
+    position: absolute;
+    right: 2.2%;
+    top: 8%;
+    bottom: 8%;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-size: clamp(7px, 1.5vw, 9px);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: rgba(10, 40, 15, 0.85);
+    white-space: nowrap;
+  }
+
+  .controls {
+    margin-top: 28px;
+    width: min(92vw, 560px);
+    display: grid;
+    gap: 10px;
+  }
+
+  .controls label {
+    display: grid;
+    gap: 4px;
+    font-size: 12px;
+    color: #445;
+  }
+
+  .controls input {
+    border: 1px solid #c5ced6;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fff;
+  }
+
+  .controls input:focus {
+    outline: 2px solid var(--vitale-green);
+    outline-offset: 1px;
+  }
+
+  .controls p {
+    margin: 4px 0 0;
+    font-size: 11px;
+    color: #667788;
+    line-height: 1.4;
+  }
 </style>
 </head>
 <body>
-<div class="card" id="card">
-  <div class="err">Chargement…</div>
-</div>
+  <div class="demo-note">Maquette visuelle · données fictives · non utilisable</div>
+
+  <div>
+    <article class="vitale" aria-label="Maquette de Carte Vitale">
+      <div class="vitale__bg" aria-hidden="true"></div>
+      <div class="vitale__yellow" aria-hidden="true"></div>
+
+      <div class="vitale__content">
+        <div class="vitale__brand">
+          <span class="vitale__brand-name">Vitale</span>
+          <span class="vitale__brand-sub">carte d'assurance maladie</span>
+        </div>
+
+        <div class="vitale__chip" aria-hidden="true">
+          <div class="vitale__chip-grid">
+            <span></span><span></span><span></span>
+            <span></span><span></span><span></span>
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div class="vitale__braille" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+
+        <span class="vitale__arrow" aria-hidden="true">&lt;</span>
+
+        <div class="vitale__info">
+          <div class="vitale__issued">émise le <span id="issued">01/01/2024</span></div>
+          <div class="vitale__name" id="fullname">Alex DUPONT</div>
+          <div class="vitale__nir" id="nir">1 85 04 75 123 456 78</div>
+        </div>
+
+        <div class="vitale__photo" aria-hidden="true">
+          <div class="vitale__photo-placeholder"></div>
+        </div>
+
+        <div class="vitale__serial" id="serial">8000000000 0000000000 0</div>
+      </div>
+    </article>
+
+    <form class="controls" id="form" autocomplete="off">
+      <label>Nom affiché
+        <input type="text" name="name" value="Alex DUPONT" maxlength="40">
+      </label>
+      <label>Date d'émission
+        <input type="text" name="issued" value="01/01/2024" maxlength="10">
+      </label>
+      <label>N° de sécurité sociale (démo)
+        <input type="text" name="nir" value="1 85 04 75 123 456 78" maxlength="21">
+      </label>
+      <p>Ceci est une maquette HTML/CSS pour l’apprentissage du design. Ce n’est pas une vraie Carte Vitale et elle ne peut pas être utilisée auprès des professionnels de santé.</p>
+    </form>
+  </div>
+
 <script>
-(function(){
-  function b64urlDecode(s){
-    s = s.replace(/-/g,'+').replace(/_/g,'/');
-    while(s.length % 4) s += '=';
-    try{ return decodeURIComponent(escape(atob(s))); }catch(e){ return atob(s); }
-  }
-  function esc(x){ return String(x==null?'':x)
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+(function () {
+  var form = document.getElementById('form');
+  var fields = {
+    name: document.getElementById('fullname'),
+    issued: document.getElementById('issued'),
+    nir: document.getElementById('nir')
+  };
 
-  var raw = (location.hash || '').replace(/^#/,'');
-  if(raw.indexOf('d=')===0) raw = raw.slice(2);
-  var data = null;
-  if(raw){ try{ data = JSON.parse(b64urlDecode(raw)); }catch(e){ data = null; } }
-
-  var card = document.getElementById('card');
-  if(!data){
-    card.innerHTML = '<div class="err">Aucune donnée de signature à afficher.<br>'
-      + 'Cette page s\'ouvre en scannant le QR code d\'une attestation.</div>';
-    return;
-  }
-
-  var sigs = (data.sigs||[]).map(function(s){
-    return '<div class="sig"><div class="top"><div>'
-      + '<div class="name">'+esc(s.n)+'</div>'
-      + '<div class="role">'+esc(s.r||'')+'</div></div>'
-      + '<span class="chip">✓ Signé</span></div>'
-      + '<div class="when">Signé le <b>'+esc(s.d||'')+'</b></div></div>';
-  }).join('');
-
-  var html = ''
-    + '<div class="head">'
-    +   '<h1>Attestation de signature électronique</h1>'
-    +   '<p>Conforme au règlement eIDAS · norme ISO 27001</p>'
-    +   '<div class="valid"><span class="dot"></span> Signature vérifiée — Enveloppe terminée</div>'
-    + '</div>'
-    + '<div class="body">'
-    +   '<div class="kv"><div class="k">Identifiant</div><div class="v">'+esc(data.env||'—')+'</div></div>'
-    +   (data.stag?'<div class="kv"><div class="k">Bénéficiaire</div><div class="v">'+esc(data.stag)+'</div></div>':'')
-    +   (data.doc?'<div class="kv"><div class="k">Document</div><div class="v">'+esc(data.doc)+'</div></div>':'')
-    +   (data.org?'<div class="kv"><div class="k">Organisme</div><div class="v">'+esc(data.org)+'</div></div>':'')
-    +   '<h2>Signataires</h2>'
-    +   (sigs || '<div class="err">Aucun signataire.</div>')
-    +   (data.seal?'<div class="kv" style="margin-top:14px"><div class="k">Scellé le</div><div class="v">'+esc(data.seal)+'</div></div>':'')
-    +   (data.sha?'<h2>Empreinte SHA-256</h2><div class="mono">'+esc(data.sha)+'</div>':'')
-    +   '<div class="foot">'
-    +     'Ce document a été signé électroniquement conformément au règlement (UE) n°910/2014 (eIDAS). '
-    +     'L\'intégrité est garantie par l\'empreinte SHA-256.'
-    +     (data.org?'<br><span class="brand">'+esc(data.org)+'</span>':'')
-    +   '</div>'
-    + '</div>';
-
-  card.innerHTML = html;
-  document.title = 'Vérification — ' + (data.env||'signature');
+  form.addEventListener('input', function (e) {
+    var t = e.target;
+    if (t.name && fields[t.name]) {
+      fields[t.name].textContent = t.value || '—';
+    }
+  });
 })();
 </script>
 </body>
