@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vérification de signature électronique</title>
 <style>
+  .nav-demo{ max-width:640px; margin:0 auto 12px; display:flex; justify-content:flex-end; }
+  .nav-demo a{ font:600 12.5px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:#1E3A5F; text-decoration:none; background:#fff; border:1px solid #e4eaf0;
+    padding:8px 12px; border-radius:999px; box-shadow:0 2px 8px rgba(30,58,95,.06); }
+  .nav-demo a:hover{ border-color:#00B4D8; color:#0a6a80; }
   :root{ --navy:#1E3A5F; --navy2:#183858; --accent:#00B4D8; --ok:#2BA66F; --ink:#22303f; --muted:#5C7088; --line:#e4eaf0; --bg:#f4f7fb; }
   *{ box-sizing:border-box; }
   body{ margin:0; background:var(--bg); color:var(--ink);
@@ -43,6 +48,7 @@
 </style>
 </head>
 <body>
+<div class="nav-demo"><a href="carte-vitale.html">Carte Vitale fictive (démo)</a></div>
 <div class="card" id="card">
   <div class="err">Chargement…</div>
 </div>

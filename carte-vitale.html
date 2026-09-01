@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Générateur Carte Vitale fictive — Démo CPAM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cv-yellow: #f5c518;
+    --cv-yellow-deep: #e0b010;
+    --cv-green: #0a7a3e;
+    --cv-green-dark: #066833;
+    --cv-green-line: rgba(0, 50, 25, 0.18);
+    --ink: #1a2b3c;
+    --muted: #5a6f82;
+    --line: #d9e3ec;
+    --panel: #ffffff;
+    --page: #eef3f7;
+    --accent: #0b6e4f;
+    --warn: #9a3412;
+    --warn-bg: #fff7ed;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    font-family: "DM Sans", system-ui, sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(245, 197, 24, 0.18), transparent 55%),
+      radial-gradient(900px 500px at 100% 0%, rgba(10, 122, 62, 0.12), transparent 50%),
+      linear-gradient(180deg, #f7fafc 0%, var(--page) 100%);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 28px 18px 48px;
+  }
+
+  header.app-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 14px 24px;
+    margin-bottom: 22px;
+  }
+  .brand-block h1 {
+    font-family: Outfit, "DM Sans", sans-serif;
+    font-size: clamp(1.45rem, 2.4vw, 1.9rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 6px;
+  }
+  .brand-block p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+    max-width: 46ch;
+    line-height: 1.45;
+  }
+  .badge-fictive {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--warn-bg);
+    color: var(--warn);
+    border: 1px solid #fdba74;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+  .badge-fictive span {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ea580c;
+    flex-shrink: 0;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(280px, 360px) 1fr;
+    gap: 22px;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 18px 18px 20px;
+    box-shadow: 0 10px 30px rgba(26, 43, 60, 0.05);
+  }
+  .panel h2 {
+    font-family: Outfit, sans-serif;
+    font-size: 0.95rem;
+    font-weight: 650;
+    margin: 0 0 14px;
+    letter-spacing: 0.01em;
+  }
+
+  label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin: 0 0 5px;
+  }
+  .field { margin-bottom: 12px; }
+  input[type="text"],
+  input[type="date"],
+  input[type="file"] {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font: inherit;
+    font-size: 0.92rem;
+    color: var(--ink);
+    background: #fbfcfd;
+  }
+  input[type="text"]:focus,
+  input[type="date"]:focus {
+    outline: 2px solid rgba(11, 110, 79, 0.28);
+    border-color: var(--accent);
+    background: #fff;
+  }
+  .row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  button, .btn {
+    appearance: none;
+    border: none;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 650;
+    font-size: 0.88rem;
+    border-radius: 10px;
+    padding: 10px 14px;
+    transition: transform .12s ease, background .12s ease, box-shadow .12s ease;
+  }
+  button:active { transform: translateY(1px); }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(11, 110, 79, 0.22);
+  }
+  .btn-primary:hover { background: #095c42; }
+  .btn-secondary {
+    background: #eef4f8;
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+  .btn-secondary:hover { background: #e4edf4; }
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px dashed var(--line);
+  }
+
+  .preview-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .preview-stage {
+    background:
+      linear-gradient(145deg, rgba(255,255,255,.7), rgba(255,255,255,.35)),
+      repeating-linear-gradient(
+        -18deg,
+        transparent,
+        transparent 10px,
+        rgba(10, 122, 62, 0.03) 10px,
+        rgba(10, 122, 62, 0.03) 20px
+      );
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 28px 16px;
+    display: grid;
+    place-items: center;
+    min-height: 320px;
+    overflow: auto;
+  }
+
+  /* —— Carte Vitale fictive —— */
+  .cv-card {
+    position: relative;
+    width: min(92vw, 540px);
+    aspect-ratio: 85.6 / 53.98;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow:
+      0 18px 40px rgba(8, 40, 24, 0.28),
+      0 2px 0 rgba(255,255,255,.15) inset;
+    user-select: none;
+    isolation: isolate;
+    animation: card-in .55s cubic-bezier(.2,.8,.2,1) both;
+  }
+  @keyframes card-in {
+    from { opacity: 0; transform: translateY(12px) scale(.98); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .cv-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      /* fine horizontal lines on green */
+      repeating-linear-gradient(
+        0deg,
+        transparent 0 2px,
+        var(--cv-green-line) 2px 3px
+      ),
+      linear-gradient(105deg,
+        var(--cv-yellow) 0%,
+        var(--cv-yellow) 24%,
+        var(--cv-green) 24.2%,
+        var(--cv-green-dark) 100%
+      );
+  }
+  .cv-bg::before {
+    /* diagonal yellow wedge */
+    content: "";
+    position: absolute;
+    left: -8%;
+    top: -20%;
+    width: 42%;
+    height: 140%;
+    background: linear-gradient(160deg, #ffd84a, var(--cv-yellow) 45%, var(--cv-yellow-deep));
+    transform: skewX(-14deg);
+    box-shadow: 4px 0 0 rgba(0,40,20,.15);
+  }
+  .cv-bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 78% 42%, rgba(255,255,255,.12) 0 18%, transparent 42%),
+      radial-gradient(circle at 78% 42%, rgba(255,255,255,.06) 0 28%, transparent 55%);
+    pointer-events: none;
+  }
+
+  .cv-watermark {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    z-index: 6;
+  }
+  .cv-watermark span {
+    font-family: Outfit, sans-serif;
+    font-weight: 800;
+    font-size: clamp(1.4rem, 5.2vw, 2.1rem);
+    letter-spacing: 0.18em;
+    color: rgba(255, 255, 255, 0.16);
+    border: 3px solid rgba(255, 255, 255, 0.18);
+    padding: 8px 18px;
+    transform: rotate(-18deg);
+    text-transform: uppercase;
+  }
+
+  .cv-title {
+    position: absolute;
+    left: 34%;
+    top: 10%;
+    z-index: 3;
+    line-height: 1;
+  }
+  .cv-title .vitale {
+    font-family: Outfit, Arial, sans-serif;
+    font-weight: 800;
+    font-size: clamp(1.55rem, 5.8vw, 2.35rem);
+    color: var(--cv-yellow);
+    letter-spacing: -0.01em;
+    text-shadow: 0 1px 0 rgba(0,0,0,.12);
+  }
+  .cv-title .sub {
+    margin-top: 4px;
+    font-size: clamp(0.55rem, 1.7vw, 0.72rem);
+    color: rgba(255,255,255,.92);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+
+  .cv-chip {
+    position: absolute;
+    left: 27%;
+    top: 38%;
+    width: 11.5%;
+    aspect-ratio: 1;
+    z-index: 4;
+    border-radius: 4px;
+    background:
+      linear-gradient(135deg, #f0d78a 0%, #c9a227 40%, #a8871a 70%, #e8c75a 100%);
+    box-shadow:
+      0 1px 2px rgba(0,0,0,.35),
+      inset 0 0 0 1px rgba(255,255,255,.25);
+    overflow: hidden;
+  }
+  .cv-chip svg { width: 100%; height: 100%; display: block; opacity: .85; }
+
+  .cv-meta {
+    position: absolute;
+    left: 42%;
+    top: 38%;
+    z-index: 3;
+    color: #0d1a12;
+  }
+  .cv-meta .issued {
+    font-size: clamp(0.62rem, 1.9vw, 0.82rem);
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .cv-meta .firstname {
+    font-size: clamp(0.78rem, 2.3vw, 1.02rem);
+    font-weight: 600;
+    line-height: 1.15;
+  }
+  .cv-meta .lastname {
+    font-size: clamp(0.78rem, 2.3vw, 1.02rem);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    line-height: 1.15;
+  }
+
+  .cv-nir {
+    position: absolute;
+    left: 34%;
+    bottom: 11%;
+    z-index: 3;
+    font-family: "DM Sans", Arial, sans-serif;
+    font-size: clamp(0.78rem, 2.4vw, 1.05rem);
+    font-weight: 650;
+    letter-spacing: 0.06em;
+    color: #0d1a12;
+  }
+
+  .cv-photo {
+    position: absolute;
+    right: 9%;
+    top: 22%;
+    width: 18.5%;
+    aspect-ratio: 3 / 3.6;
+    z-index: 4;
+    border-radius: 2px;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 50% 40%, rgba(255,255,255,.2), transparent 60%),
+      linear-gradient(180deg, #1f8a52, #0a5c32);
+    box-shadow: 0 0 0 1px rgba(0,0,0,.12);
+  }
+  .cv-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: contrast(1.02) saturate(0.95);
+  }
+  .cv-photo .ph-fallback {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    color: rgba(255,255,255,.7);
+    font-size: 0.65rem;
+    text-align: center;
+    padding: 6px;
+    font-weight: 600;
+  }
+
+  .cv-serial {
+    position: absolute;
+    right: 2.2%;
+    top: 50%;
+    transform: translateY(-50%) rotate(180deg);
+    writing-mode: vertical-rl;
+    font-size: clamp(0.42rem, 1.2vw, 0.55rem);
+    letter-spacing: 0.08em;
+    color: rgba(10, 30, 18, 0.85);
+    z-index: 3;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .cv-braille {
+    position: absolute;
+    left: 5.5%;
+    bottom: 28%;
+    z-index: 3;
+    display: grid;
+    grid-template-columns: repeat(2, 5px);
+    gap: 5px 4px;
+  }
+  .cv-braille i {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(120, 80, 0, 0.35);
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.2);
+  }
+
+  .cv-arrow {
+    position: absolute;
+    left: 4%;
+    bottom: 7%;
+    z-index: 3;
+    width: 14px;
+    height: 14px;
+    opacity: .9;
+  }
+
+  .cv-demo-tag {
+    position: absolute;
+    left: 4%;
+    top: 6%;
+    z-index: 5;
+    font-size: 0.48rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: rgba(80, 50, 0, 0.55);
+    text-transform: uppercase;
+  }
+
+  .integration {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .integration code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.75rem;
+    background: #f0f5f8;
+    padding: 2px 6px;
+    border-radius: 5px;
+    color: #1f3a4d;
+  }
+  .integration pre {
+    margin: 10px 0 0;
+    background: #122033;
+    color: #d7e6f5;
+    border-radius: 12px;
+    padding: 12px 14px;
+    overflow: auto;
+    font-size: 0.72rem;
+    line-height: 1.45;
+  }
+  .hint {
+    margin-top: 10px;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #122033;
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    opacity: 0;
+    pointer-events: none;
+    transition: .25s ease;
+    z-index: 50;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="app-head">
+      <div class="brand-block">
+        <h1>Générateur Carte Vitale fictive</h1>
+        <p>Outil de démonstration pour soutenance — à brancher sur un logiciel métier CPAM. Aucune valeur juridique.</p>
+      </div>
+      <div class="badge-fictive"><span></span> Carte fictive · usage démo / soutenance uniquement</div>
+    </header>
+
+    <div class="layout">
+      <aside class="panel">
+        <h2>Données assuré (fictives)</h2>
+        <form id="form" autocomplete="off">
+          <div class="row-2">
+            <div class="field">
+              <label for="prenom">Prénom</label>
+              <input id="prenom" name="prenom" type="text" value="Alex" maxlength="40">
+            </div>
+            <div class="field">
+              <label for="nom">Nom</label>
+              <input id="nom" name="nom" type="text" value="MARTIN" maxlength="40">
+            </div>
+          </div>
+          <div class="field">
+            <label for="nir">N° Sécurité sociale (NIR fictif)</label>
+            <input id="nir" name="nir" type="text" value="1 85 01 75 123 456 78" maxlength="21" inputmode="numeric">
+          </div>
+          <div class="field">
+            <label for="emise">Date d'émission</label>
+            <input id="emise" name="emise" type="date" value="2024-04-12">
+          </div>
+          <div class="field">
+            <label for="serie">N° de série (vertical)</label>
+            <input id="serie" name="serie" type="text" value="80250000000 0000000001 1" maxlength="28">
+          </div>
+          <div class="field">
+            <label for="photo">Photo (optionnel)</label>
+            <input id="photo" name="photo" type="file" accept="image/*">
+          </div>
+          <div class="actions">
+            <button type="button" class="btn-primary" id="btnCopyLink">Copier le lien CPAM</button>
+            <button type="button" class="btn-secondary" id="btnExport">Exporter JSON</button>
+            <button type="button" class="btn-secondary" id="btnDownload">Télécharger PNG</button>
+            <button type="button" class="btn-ghost" id="btnReset">Réinitialiser</button>
+          </div>
+          <p class="hint">Le lien encode les données en fragment URL (#d=…) — même convention que la page de vérification de signature.</p>
+        </form>
+      </aside>
+
+      <section class="preview-wrap">
+        <div class="preview-stage">
+          <div class="cv-card" id="cvCard" aria-label="Aperçu carte Vitale fictive">
+            <div class="cv-bg"></div>
+            <div class="cv-demo-tag">Démo</div>
+            <div class="cv-title">
+              <div class="vitale">Vitale</div>
+              <div class="sub">carte d'assurance maladie</div>
+            </div>
+            <div class="cv-chip" aria-hidden="true">
+              <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                <rect x="6" y="8" width="8" height="32" rx="1" fill="#6b5420"/>
+                <rect x="18" y="8" width="8" height="14" rx="1" fill="#6b5420"/>
+                <rect x="18" y="26" width="8" height="14" rx="1" fill="#6b5420"/>
+                <rect x="30" y="8" width="8" height="32" rx="1" fill="#6b5420"/>
+                <rect x="10" y="12" width="28" height="4" fill="#8a7030"/>
+                <rect x="10" y="22" width="28" height="4" fill="#8a7030"/>
+                <rect x="10" y="32" width="28" height="4" fill="#8a7030"/>
+              </svg>
+            </div>
+            <div class="cv-meta">
+              <div class="issued">émise le <span id="outEmise">12/04/2024</span></div>
+              <div class="firstname" id="outPrenom">Alex</div>
+              <div class="lastname" id="outNom">MARTIN</div>
+            </div>
+            <div class="cv-nir" id="outNir">1 85 01 75 123 456 78</div>
+            <div class="cv-photo" id="photoBox">
+              <div class="ph-fallback">PHOTO<br>FICTIVE</div>
+            </div>
+            <div class="cv-serial" id="outSerie">80250000000 0000000001 1</div>
+            <div class="cv-braille" aria-hidden="true">
+              <i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+            <svg class="cv-arrow" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 4 L18 12 L8 20" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="cv-watermark"><span>Fictive</span></div>
+          </div>
+        </div>
+
+        <div class="panel integration">
+          <h2>Intégration logiciel CPAM</h2>
+          <p>
+            Depuis votre application, ouvrez cette page avec un hash Base64-URL :
+            <code>carte-vitale.html#d=&lt;payload&gt;</code>
+          </p>
+          <pre id="samplePayload"></pre>
+          <p class="hint">
+            Payload attendu : <code>prenom</code>, <code>nom</code>, <code>nir</code>, <code>emise</code> (JJ/MM/AAAA ou AAAA-MM-JJ),
+            <code>serie</code>, <code>photo</code> (data URL optionnelle).
+            Exemple JS côté métier :
+            <code>location = base + '#d=' + btoa(unescape(encodeURIComponent(JSON.stringify(data)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')</code>
+          </p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+(function () {
+  var defaults = {
+    prenom: 'Alex',
+    nom: 'MARTIN',
+    nir: '1 85 01 75 123 456 78',
+    emise: '2024-04-12',
+    serie: '80250000000 0000000001 1',
+    photo: null
+  };
+
+  var form = document.getElementById('form');
+  var toastEl = document.getElementById('toast');
+  var photoData = null;
+  var toastTimer = null;
+
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 2200);
+  }
+
+  function b64urlEncode(str) {
+    return btoa(unescape(encodeURIComponent(str)))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  function b64urlDecode(s) {
+    s = s.replace(/-/g, '+').replace(/_/g, '/');
+    while (s.length % 4) s += '=';
+    try { return decodeURIComponent(escape(atob(s))); } catch (e) { return atob(s); }
+  }
+
+  function formatDateFr(value) {
+    if (!value) return '';
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) return value;
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+    if (m) return m[3] + '/' + m[2] + '/' + m[1];
+    return value;
+  }
+
+  function toInputDate(value) {
+    if (!value) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+    var m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
+    if (m) return m[3] + '-' + m[2] + '-' + m[1];
+    return value;
+  }
+
+  function formatNir(raw) {
+    var digits = String(raw || '').replace(/\D/g, '').slice(0, 15);
+    var parts = [];
+    if (digits.length > 0) parts.push(digits.slice(0, 1));
+    if (digits.length > 1) parts.push(digits.slice(1, 3));
+    if (digits.length > 3) parts.push(digits.slice(3, 5));
+    if (digits.length > 5) parts.push(digits.slice(5, 7));
+    if (digits.length > 7) parts.push(digits.slice(7, 10));
+    if (digits.length > 10) parts.push(digits.slice(10, 13));
+    if (digits.length > 13) parts.push(digits.slice(13, 15));
+    return parts.join(' ');
+  }
+
+  function readForm() {
+    return {
+      prenom: document.getElementById('prenom').value.trim() || '—',
+      nom: document.getElementById('nom').value.trim().toUpperCase() || '—',
+      nir: formatNir(document.getElementById('nir').value) || defaults.nir,
+      emise: formatDateFr(document.getElementById('emise').value),
+      serie: document.getElementById('serie').value.trim() || defaults.serie,
+      photo: photoData,
+      fictive: true,
+      usage: 'demo-soutenance-cpam'
+    };
+  }
+
+  function render(data) {
+    document.getElementById('outPrenom').textContent = data.prenom;
+    document.getElementById('outNom').textContent = data.nom;
+    document.getElementById('outNir').textContent = data.nir;
+    document.getElementById('outEmise').textContent = data.emise;
+    document.getElementById('outSerie').textContent = data.serie;
+
+    var box = document.getElementById('photoBox');
+    if (data.photo) {
+      box.innerHTML = '<img alt="Photo fictive" src="' + data.photo + '">';
+    } else {
+      box.innerHTML = '<div class="ph-fallback">PHOTO<br>FICTIVE</div>';
+    }
+
+    var sample = {
+      prenom: data.prenom,
+      nom: data.nom,
+      nir: data.nir,
+      emise: data.emise,
+      serie: data.serie,
+      fictive: true
+    };
+    document.getElementById('samplePayload').textContent =
+      '{\n' +
+      '  "prenom": "' + sample.prenom + '",\n' +
+      '  "nom": "' + sample.nom + '",\n' +
+      '  "nir": "' + sample.nir + '",\n' +
+      '  "emise": "' + sample.emise + '",\n' +
+      '  "serie": "' + sample.serie + '",\n' +
+      '  "fictive": true\n' +
+      '}';
+  }
+
+  function applyToForm(data) {
+    document.getElementById('prenom').value = data.prenom || '';
+    document.getElementById('nom').value = data.nom || '';
+    document.getElementById('nir').value = data.nir || '';
+    document.getElementById('emise').value = toInputDate(data.emise || '');
+    document.getElementById('serie').value = data.serie || '';
+    photoData = data.photo || null;
+  }
+
+  function refresh() {
+    var data = readForm();
+    render(data);
+    return data;
+  }
+
+  function loadFromHash() {
+    var raw = (location.hash || '').replace(/^#/, '');
+    if (raw.indexOf('d=') === 0) raw = raw.slice(2);
+    if (!raw) return false;
+    try {
+      var data = JSON.parse(b64urlDecode(raw));
+      if (!data || typeof data !== 'object') return false;
+      applyToForm({
+        prenom: data.prenom || data.firstName || '',
+        nom: data.nom || data.lastName || '',
+        nir: data.nir || data.ssn || '',
+        emise: data.emise || data.issued || '',
+        serie: data.serie || data.serial || '',
+        photo: data.photo || null
+      });
+      refresh();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  form.addEventListener('input', function (e) {
+    if (e.target && e.target.id === 'nir') {
+      var start = e.target.selectionStart;
+      var before = e.target.value.length;
+      e.target.value = formatNir(e.target.value);
+      var after = e.target.value.length;
+      try { e.target.setSelectionRange(start + (after - before), start + (after - before)); } catch (_) {}
+    }
+    if (e.target && e.target.id === 'nom') {
+      e.target.value = e.target.value.toUpperCase();
+    }
+    refresh();
+  });
+
+  document.getElementById('photo').addEventListener('change', function (e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) { photoData = null; refresh(); return; }
+    var reader = new FileReader();
+    reader.onload = function () {
+      photoData = reader.result;
+      refresh();
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('btnCopyLink').addEventListener('click', function () {
+    var data = refresh();
+    var payload = {
+      prenom: data.prenom,
+      nom: data.nom,
+      nir: data.nir,
+      emise: data.emise,
+      serie: data.serie,
+      fictive: true,
+      usage: 'demo-soutenance-cpam'
+    };
+    // photo volontairement omise du lien (trop volumineux)
+    var url = location.href.split('#')[0] + '#d=' + b64urlEncode(JSON.stringify(payload));
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () {
+        toast('Lien CPAM copié');
+      }).catch(function () {
+        prompt('Copiez ce lien :', url);
+      });
+    } else {
+      prompt('Copiez ce lien :', url);
+    }
+    history.replaceState(null, '', '#d=' + b64urlEncode(JSON.stringify(payload)));
+  });
+
+  document.getElementById('btnExport').addEventListener('click', function () {
+    var data = refresh();
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'carte-vitale-fictive.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast('JSON exporté');
+  });
+
+  document.getElementById('btnReset').addEventListener('click', function () {
+    applyToForm(defaults);
+    document.getElementById('photo').value = '';
+    history.replaceState(null, '', location.pathname + location.search);
+    refresh();
+    toast('Réinitialisé');
+  });
+
+  function downloadPngFallback() {
+    // Canvas manuel simplifié si html2canvas indisponible
+    var data = refresh();
+    var canvas = document.createElement('canvas');
+    canvas.width = 856;
+    canvas.height = 540;
+    var ctx = canvas.getContext('2d');
+    // fond
+    var grad = ctx.createLinearGradient(0, 0, 856, 540);
+    grad.addColorStop(0, '#f5c518');
+    grad.addColorStop(0.28, '#f5c518');
+    grad.addColorStop(0.285, '#0a7a3e');
+    grad.addColorStop(1, '#066833');
+    ctx.fillStyle = grad;
+    roundRect(ctx, 0, 0, 856, 540, 24);
+    ctx.fill();
+    // yellow wedge
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(280, 0);
+    ctx.lineTo(160, 540);
+    ctx.lineTo(0, 540);
+    ctx.closePath();
+    ctx.fillStyle = '#f5c518';
+    ctx.fill();
+    ctx.restore();
+    // title
+    ctx.fillStyle = '#f5c518';
+    ctx.font = '800 64px Outfit, Arial, sans-serif';
+    ctx.fillText('Vitale', 300, 90);
+    ctx.fillStyle = 'rgba(255,255,255,.92)';
+    ctx.font = '500 18px DM Sans, Arial, sans-serif';
+    ctx.fillText("carte d'assurance maladie", 302, 118);
+    // chip
+    ctx.fillStyle = '#c9a227';
+    ctx.fillRect(230, 210, 70, 70);
+    // meta
+    ctx.fillStyle = '#0d1a12';
+    ctx.font = '500 22px DM Sans, Arial, sans-serif';
+    ctx.fillText('émise le ' + data.emise, 360, 230);
+    ctx.font = '600 28px DM Sans, Arial, sans-serif';
+    ctx.fillText(data.prenom, 360, 270);
+    ctx.font = '700 28px DM Sans, Arial, sans-serif';
+    ctx.fillText(data.nom, 360, 305);
+    ctx.font = '650 28px DM Sans, Arial, sans-serif';
+    ctx.fillText(data.nir, 300, 470);
+    // watermark
+    ctx.save();
+    ctx.translate(428, 270);
+    ctx.rotate(-Math.PI / 10);
+    ctx.strokeStyle = 'rgba(255,255,255,.25)';
+    ctx.lineWidth = 4;
+    ctx.font = '800 48px Outfit, Arial, sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,.18)';
+    ctx.textAlign = 'center';
+    ctx.fillText('FICTIVE', 0, 0);
+    ctx.strokeRect(-120, -40, 240, 60);
+    ctx.restore();
+    // demo tag
+    ctx.fillStyle = 'rgba(80,50,0,.55)';
+    ctx.font = '800 14px DM Sans, Arial, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('DEMO', 30, 40);
+
+    var a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = 'carte-vitale-fictive.png';
+    a.click();
+    toast('PNG téléchargé');
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  document.getElementById('btnDownload').addEventListener('click', function () {
+    var card = document.getElementById('cvCard');
+    if (window.html2canvas) {
+      window.html2canvas(card, {
+        backgroundColor: null,
+        scale: 2,
+        useCORS: true
+      }).then(function (canvas) {
+        var a = document.createElement('a');
+        a.href = canvas.toDataURL('image/png');
+        a.download = 'carte-vitale-fictive.png';
+        a.click();
+        toast('PNG téléchargé');
+      }).catch(function () {
+        downloadPngFallback();
+      });
+    } else {
+      downloadPngFallback();
+    }
+  });
+
+  // html2canvas via CDN without broken integrity — load dynamically
+  (function loadHtml2Canvas() {
+    var s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+    s.async = true;
+    document.head.appendChild(s);
+  })();
+
+  window.addEventListener('hashchange', function () { loadFromHash(); });
+
+  if (!loadFromHash()) refresh();
+})();
+  </script>
+</body>
+</html>
