@@ -786,17 +786,33 @@
       usage: 'demo-soutenance-cpam'
     };
     // photo volontairement omise du lien (trop volumineux)
-    var url = location.href.split('#')[0] + '#d=' + b64urlEncode(JSON.stringify(payload));
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(url).then(function () {
-        toast('Lien CPAM copié');
-      }).catch(function () {
-        prompt('Copiez ce lien :', url);
-      });
-    } else {
-      prompt('Copiez ce lien :', url);
+    var encoded = b64urlEncode(JSON.stringify(payload));
+    var url = location.href.split('#')[0] + '#d=' + encoded;
+    history.replaceState(null, '', '#d=' + encoded);
+
+    function ok() { toast('Lien CPAM copié'); }
+    function fallback() {
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = url;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        var copied = document.execCommand('copy');
+        document.body.removeChild(ta);
+        if (copied) { ok(); return; }
+      } catch (_) {}
+      window.prompt('Copiez ce lien CPAM :', url);
+      toast('Lien prêt à coller');
     }
-    history.replaceState(null, '', '#d=' + b64urlEncode(JSON.stringify(payload)));
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(ok).catch(fallback);
+    } else {
+      fallback();
+    }
   });
 
   document.getElementById('btnExport').addEventListener('click', function () {
