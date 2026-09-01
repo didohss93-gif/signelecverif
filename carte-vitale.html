@@ -82,56 +82,55 @@
 
   .cv-date {
     position: absolute;
-    left: 36%;
-    top: 40.5%;
-    width: 36%;
+    left: 37%;
+    top: 41%;
     color: var(--card-text);
-    font-size: clamp(0.62rem, 2.05vw, 0.92rem);
+    font-size: clamp(0.58rem, 1.9vw, 0.86rem);
     font-weight: 500;
     letter-spacing: 0.01em;
     white-space: nowrap;
+    line-height: 1;
   }
 
   .cv-name {
     position: absolute;
-    left: 36%;
-    top: 49%;
-    width: 34%;
+    left: 37%;
+    top: 49.5%;
     color: var(--card-text);
-    line-height: 1.15;
+    line-height: 1.12;
   }
   .cv-name .prenom {
-    font-size: clamp(0.78rem, 2.45vw, 1.08rem);
+    font-size: clamp(0.72rem, 2.25vw, 1rem);
     font-weight: 600;
   }
   .cv-name .nom {
-    font-size: clamp(0.78rem, 2.45vw, 1.08rem);
+    font-size: clamp(0.72rem, 2.25vw, 1rem);
     font-weight: 700;
     text-transform: uppercase;
   }
 
   .cv-nir {
     position: absolute;
-    left: 30%;
-    top: 82%;
-    width: 50%;
+    left: 31%;
+    top: 82.5%;
     color: var(--card-text);
-    font-size: clamp(0.78rem, 2.5vw, 1.12rem);
+    font-size: clamp(0.72rem, 2.35vw, 1.05rem);
     font-weight: 600;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.045em;
     white-space: nowrap;
+    line-height: 1;
   }
 
   .cv-photo {
     position: absolute;
-    left: 74.2%;
-    top: 21.5%;
-    width: 14.6%;
-    height: 43%;
-    border-radius: 2px;
+    left: 74.8%;
+    top: 22%;
+    width: 13.7%;
+    height: 35.5%;
+    border-radius: 1px;
     overflow: hidden;
-    box-shadow: 0 0 0 1px rgba(255,255,255,.55), 0 0 18px rgba(255,255,255,.22);
-    background: #1a7a45;
+    box-shadow: 0 0 12px rgba(255,255,255,.28);
+    background: transparent;
   }
   .cv-photo img {
     width: 100%;
@@ -300,7 +299,27 @@
     };
   }
 
+  function isDefault(data) {
+    return data.prenom === defaults.prenom
+      && data.nom === defaults.nom
+      && data.nir === defaults.nir
+      && data.emise === formatDateFr(defaults.emise)
+      && data.serie === defaults.serie
+      && (data.photo === defaults.photo || !data.photo);
+  }
+
   function render(data) {
+    var card = document.getElementById('cvCard');
+    var def = isDefault(data);
+    // Même carte que la référence quand les données n'ont pas changé
+    card.style.backgroundImage = 'url("' + (def ? 'assets/carte-reference.jpg' : 'assets/carte-template.jpg') + '")';
+    var vis = def ? 'hidden' : 'visible';
+    document.querySelector('.cv-date').style.visibility = vis;
+    document.querySelector('.cv-name').style.visibility = vis;
+    document.querySelector('.cv-nir').style.visibility = vis;
+    document.querySelector('.cv-serial').style.visibility = vis;
+    document.getElementById('photoBox').style.visibility = def ? 'hidden' : 'visible';
+
     document.getElementById('outPrenom').textContent = data.prenom;
     document.getElementById('outNom').textContent = data.nom;
     document.getElementById('outNir').textContent = data.nir;
