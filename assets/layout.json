@@ -1,0 +1,46 @@
+{
+  "card": {
+    "w": 850,
+    "h": 607
+  },
+  "ink": "#142d1e",
+  "ink_rgb": [
+    20,
+    45,
+    30
+  ],
+  "font": "Arimo, Arial, Helvetica, sans-serif",
+  "fields": {
+    "date": {
+      "left": 0.3,
+      "top": 0.445,
+      "fontPx": 21
+    },
+    "prenom": {
+      "left": 0.3,
+      "top": 0.51,
+      "fontPx": 25
+    },
+    "nom": {
+      "left": 0.3,
+      "top": 0.56,
+      "fontPx": 25
+    },
+    "nir": {
+      "left": 0.28,
+      "top": 0.835,
+      "fontPx": 27
+    },
+    "serie": {
+      "left": 0.935,
+      "top": 0.17,
+      "fontPx": 10
+    },
+    "photo": {
+      "left": 0.746,
+      "top": 0.212,
+      "width": 0.142,
+      "height": 0.41
+    }
+  }
+}
